@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>EMO BOT · study companion</title>
+    <style>
+        * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
+        body {
+            background-color: #050505; margin: 0; padding: 0; height: 100vh; width: 100vw;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            overflow: hidden; font-family: 'Courier New', monospace;
+            background-image: linear-gradient(rgba(0,255,65,0.03) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(0,255,65,0.03) 1px, transparent 1px);
+            background-size: 20px 20px; position: relative;
+        }
+        .face-group {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            gap: 2vh; transform: scale(1.1); transition: transform 0.2s ease;
+            max-width: 95vw; max-height: 95vh;
+        }
+        .eye-row { display: flex; gap: 8vw; justify-content: center; align-items: center; }
+        .eye {
+            width: 20vw; height: 24vw; max-width: 140px; max-height: 160px;
+            min-width: 70px; min-height: 80px; background-color: #00ffff;
+            border-radius: 15px; box-shadow: 0 0 30px #00ffff;
+            transition: all 0.2s cubic-bezier(0.175,0.885,0.32,1.275);
+            will-change: transform, height, border-radius, margin;
+        }
+        .mouth {
+            width: 8vw; max-width: 60px; height: 1.8vh; max-height: 12px;
+            background-color: #00ffff; border-radius: 20px; box-shadow: 0 0 15px #00ffff;
+            transition: all 0.3s ease; will-change: width, height, border-radius, background, border;
+        }
+        /* mouth expressions */
+        .mouth.happy {
+            width: 12vw; max-width: 80px; height: 6vw; max-height: 40px;
+            background-color: transparent; border-bottom: 6px solid #00ffff;
+            border-radius: 0 0 100px 100px; box-shadow: 0 0 20px #00ffff;
+        }
+        .mouth.suspicious { width: 10vw; max-width: 60px; height: 0.8vh; background-color: #00ffff; }
+        .mouth.talk {
+            width: 5vw; max-width: 35px; height: 5vw; max-height: 35px;
+            border-radius: 50%; border: 4px solid #00ffff; background-color: transparent;
+            box-shadow: 0 0 20px #00ffff;
+        }
+        .mouth.sad {
+            width: 12vw; max-width: 80px; height: 3vh; max-height: 30px;
+            background-color: transparent; border-top: 6px solid #00ffff;
+            border-radius: 50px 50px 0 0; box-shadow: 0 0 15px #00ffff;
+        }
+        .mouth.sleepy {
+            width: 6vw; max-width: 50px; height: 0.8vh; background-color: #00ffff;
+            border-radius: 10px; box-shadow: 0 0 10px #00ffff; opacity: 0.7;
+        }
+        .mouth.dizzy {
+            width: 6vw; max-width: 50px; height: 2.5vh; background-color: transparent;
+            border: 4px solid #00ffff; border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+            box-shadow: 0 0 18px #00ffff; transform: rotate(4deg);
+        }
+        .mouth.hungry {
+            width: 9vw; max-width: 70px; height: 5vw; max-height: 35px;
+            background-color: transparent; border: 5px solid #00ffff;
+            border-radius: 50%; border-top-color: transparent; border-left-color: transparent;
+            box-shadow: 0 0 20px #00ffff; transform: rotate(-10deg);
+        }
+        .mouth.tired {
+            width: 10vw; max-width: 70px; height: 1vh; background-color: #00ffff;
+            opacity: 0.7; border-radius: 20px; box-shadow: 0 0 10px #00ffff;
+        }
+        /* eye expressions */
+        .eye.happy {
+            height: 16vw !important; max-height: 110px !important;
+            border-radius: 50px 50px 10px 10px; margin-top: 4vh;
+        }
+        .eye.suspicious {
+            height: 8vw !important; max-height: 60px !important; margin-top: 8vh;
+        }
+        .eye.blink { height: 0.8vh !important; margin-top: 10vh; background-color: #55ffff; }
+        .eye.sad {
+            height: 16vw !important; max-height: 100px !important;
+            border-radius: 15px 15px 50px 50px; margin-top: 3vh;
+            background-color: #00e5ff; box-shadow: 0 0 30px #00aaff;
+        }
+        .eye.sleepy {
+            height: 6vw !important; max-height: 40px !important; margin-top: 10vh;
+            background-color: #0099cc; box-shadow: 0 0 20px #0088bb;
+            opacity: 0.8; border-radius: 20px 20px 5px 5px;
+        }
+        .eye.dizzy {
+            height: 24vw !important; max-height: 150px !important; margin-top: 0;
+            background-color: #66ffff; border-radius: 30% 70% 40% 60% / 40% 40% 60% 60%;
+            box-shadow: 0 0 40px #33ffff; animation: dizzyWobble 1.5s infinite alternate ease-in-out;
+        }
+        @keyframes dizzyWobble {
+            0% { transform: rotate(-5deg) scale(0.95); }
+            100% { transform: rotate(5deg) scale(1.05); }
+        }
+        .eye.hungry {
+            height: 22vw !important; max-height: 140px !important; margin-top: 1vh;
+            background-color: #00dddd; border-radius: 20px 20px 60px 60px;
+            box-shadow: 0 0 35px #00bbbb; transform: translateY(2vh);
+        }
+        .eye.tired {
+            height: 10vw !important; max-height: 60px !important; margin-top: 10vh;
+            background-color: #007799; border-radius: 30px 30px 10px 10px;
+            box-shadow: 0 0 15px #005577; opacity: 0.8;
+        }
+        .touch-zone {
+            position: fixed; top: 0; right: 0; width: 50vw; height: 100vh;
+            z-index: 999; background: transparent; pointer-events: auto;
+        }
+        .touch-zone:active { background: rgba(0,255,65,0.02); }
+        .hud-overlay { display: none; }
+    </style>
+</head>
+<body>
+    <div class="face-group">
+        <div class="eye-row">
+            <div class="eye" id="eyeLeft"></div>
+            <div class="eye" id="eyeRight"></div>
+        </div>
+        <div class="mouth" id="mouth"></div>
+    </div>
+    <div class="touch-zone" id="touchZone"></div>
+
+    <script>
+        (function(){
+            const leftEye = document.getElementById('eyeLeft');
+            const rightEye = document.getElementById('eyeRight');
+            const mouth = document.getElementById('mouth');
+            const touchZone = document.getElementById('touchZone');
+
+            let state = 'idle';
+            let blinkTimer = null;
+            let lookTimer = null;
+            let randomTimer = null;
+            let speechTimer = null;
+            let timeAnnounceTimer = null;
+            let reminderTimer = null;
+            let quoteTimer = null;
+
+            // ---------- SPEECH ----------
+            const synth = window.speechSynthesis;
+            let voices = [];
+            let voiceReady = false;
+
+            function loadVoices() {
+                if (!synth) return;
+                voices = synth.getVoices();
+                if (voices.length > 0) voiceReady = true;
+            }
+            if (synth) {
+                if (speechSynthesis.onvoiceschanged !== undefined) {
+                    speechSynthesis.onvoiceschanged = loadVoices;
+                }
+                loadVoices();
+            }
+
+            function speak(text, rate = 0.95, pitch = 1.0) {
+                if (!synth) { console.log("TTS not supported"); return; }
+                synth.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.rate = rate;
+                utterance.pitch = pitch;
+                utterance.volume = 1;
+                if (voices.length > 0) {
+                    const engVoice = voices.find(v => v.lang.includes('en') || v.lang.includes('US') || v.lang.includes('GB'));
+                    if (engVoice) utterance.voice = engVoice;
+                }
+                synth.speak(utterance);
+            }
+
+            // ---------- helper reset ----------
+            function resetClasses() {
+                leftEye.className = 'eye';
+                rightEye.className = 'eye';
+                mouth.className = 'mouth';
+                leftEye.style.transform = '';
+                rightEye.style.transform = '';
+                mouth.style.transform = '';
+                leftEye.style.animation = '';
+                rightEye.style.animation = '';
+            }
+
+            // ---------- SET EXPRESSION ----------
+            function setExpression(type) {
+                state = type;
+                resetClasses();
+                if (type === 'idle') {
+                    leftEye.style.transform = 'translate(0,0)';
+                    rightEye.style.transform = 'translate(0,0)';
+                    mouth.style.transform = 'translate(0,0)';
+                    return;
+                }
+                leftEye.classList.add(type);
+                rightEye.classList.add(type);
+                mouth.classList.add(type);
+
+                if (type === 'dizzy') {
+                    leftEye.style.transform = 'rotate(-3deg)';
+                    rightEye.style.transform = 'rotate(3deg)';
+                    mouth.style.transform = 'rotate(2deg)';
+                } else if (type === 'sad') {
+                    leftEye.style.transform = 'translateY(4px) rotate(-2deg)';
+                    rightEye.style.transform = 'translateY(4px) rotate(2deg)';
+                } else if (type === 'hungry') {
+                    mouth.style.transform = 'rotate(-8deg) scale(1.1)';
+                } else if (type === 'tired') {
+                    leftEye.style.transform = 'translateY(6px)';
+                    rightEye.style.transform = 'translateY(6px)';
+                }
+            }
+
+            // ---------- blink ----------
+            function blink() {
+                if (state !== 'idle' && state !== 'sleepy') {
+                    blinkTimer = setTimeout(blink, 3000);
+                    return;
+                }
+                const isSleepy = (state === 'sleepy');
+                leftEye.classList.add('blink');
+                rightEye.classList.add('blink');
+                mouth.style.width = '8px';
+
+                setTimeout(() => {
+                    leftEye.classList.remove('blink');
+                    rightEye.classList.remove('blink');
+                    mouth.style.width = '';
+                }, isSleepy ? 400 : 200);
+
+                const nextBlink = isSleepy ? (Math.random() * 5000 + 3000) : (Math.random() * 4000 + 2000);
+                blinkTimer = setTimeout(blink, nextBlink);
+            }
+
+            // ---------- look around ----------
+            function lookAround() {
+                if (state === 'idle') {
+                    const x = (Math.random() - 0.5) * 30;
+                    const y = (Math.random() - 0.5) * 15;
+                    const transform = `translate(${x}px, ${y}px)`;
+                    leftEye.style.transform = transform;
+                    rightEye.style.transform = transform;
+                    mouth.style.transform = `translate(${x/2}px, ${y/2}px)`;
+                }
+                lookTimer = setTimeout(lookAround, Math.random() * 3000 + 1500);
+            }
+
+            // ---------- random behavior ----------
+            function randomBehavior() {
+                const expressions = ['happy', 'sad', 'sleepy', 'dizzy', 'hungry', 'tired', 'suspicious', 'talk'];
+                const pick = expressions[Math.floor(Math.random() * expressions.length)];
+                if (Math.random() < 0.25) { /* stay idle */ }
+                else {
+                    setExpression(pick);
+                    setTimeout(() => { if (state === pick) setExpression('idle'); }, 2500);
+                }
+                randomTimer = setTimeout(randomBehavior, Math.random() * 6000 + 4000);
+            }
+
+            // ---------- TOUCH: cycle expressions + speak ----------
+            let lastTouchTime = 0;
+            const touchExpressions = ['happy', 'sad', 'sleepy', 'dizzy', 'hungry', 'tired', 'suspicious', 'talk'];
+            const touchPhrases = {
+                happy: "I feel happy!",
+                sad: "I'm a little sad.",
+                sleepy: "So sleepy...",
+                dizzy: "Whoa, dizzy!",
+                hungry: "I'm hungry...",
+                tired: "I'm tired.",
+                suspicious: "Hmm... suspicious.",
+                talk: "Hello there! Let's study together."
+            };
+
+            function handleTouch(e) {
+                const now = Date.now();
+                if (now - lastTouchTime < 300) return;
+                lastTouchTime = now;
+
+                const pick = touchExpressions[Math.floor(Math.random() * touchExpressions.length)];
+                setExpression(pick);
+                speak(touchPhrases[pick] || "Hello", 0.95, 1.1);
+
+                setTimeout(() => { if (state === pick) setExpression('idle'); }, 2200);
+            }
+
+            touchZone.addEventListener('click', handleTouch);
+            touchZone.addEventListener('touchstart', (e) => { e.preventDefault(); handleTouch(e); }, { passive: false });
+
+            // ---------- STUDY QUOTES (famous) ----------
+            const studyQuotes = [
+                { text: "Dream is not that which you see while sleeping, it is something that does not let you sleep. — APJ Abdul Kalam", rate: 0.9, pitch: 1.0 },
+                { text: "You have to dream before your dreams can come true. — APJ Abdul Kalam", rate: 0.9, pitch: 1.0 },
+                { text: "Excellence is a continuous process and not an accident. — APJ Abdul Kalam", rate: 0.9, pitch: 1.0 },
+                { text: "Education is the most powerful weapon which you can use to change the world. — Nelson Mandela", rate: 0.9, pitch: 1.0 },
+                { text: "The future belongs to those who believe in the beauty of their dreams. — Eleanor Roosevelt", rate: 0.9, pitch: 1.0 },
+                { text: "Success is not final, failure is not fatal: it is the courage to continue that counts. — Winston Churchill", rate: 0.9, pitch: 1.0 },
+                { text: "The only way to do great work is to love what you do. — Steve Jobs", rate: 0.9, pitch: 1.0 },
+                { text: "Believe you can and you're halfway there. — Theodore Roosevelt", rate: 0.9, pitch: 1.0 },
+                { text: "It does not matter how slowly you go as long as you do not stop. — Confucius", rate: 0.9, pitch: 1.0 },
+                { text: "The beautiful thing about learning is that no one can take it away from you. — B.B. King", rate: 0.9, pitch: 1.0 },
+                { text: "Study while others are sleeping; work while others are loafing; prepare while others are playing; and dream while others are wishing. — William Arthur Ward", rate: 0.9, pitch: 1.0 },
+                { text: "Don't watch the clock; do what it does. Keep going. — Sam Levenson", rate: 0.9, pitch: 1.0 }
+            ];
+
+            function speakStudyQuote() {
+                const idx = Math.floor(Math.random() * studyQuotes.length);
+                const q = studyQuotes[idx];
+                speak(q.text, q.rate, q.pitch);
+                // cute expression while speaking
+                setExpression('happy');
+                setTimeout(() => { if (state === 'happy') setExpression('idle'); }, 3000);
+                // schedule next quote in 3-5 minutes
+                const nextIn = Math.random() * 120000 + 180000; // 3-5 min
+                quoteTimer = setTimeout(speakStudyQuote, nextIn);
+            }
+
+            // ---------- HOURLY TIME ANNOUNCEMENT (6am–10pm) ----------
+            function announceTime() {
+                const now = new Date();
+                const hours = now.getHours();
+                const minutes = now.getMinutes();
+                if (hours < 6 || hours >= 22) return;
+
+                let hour12 = hours % 12;
+                if (hour12 === 0) hour12 = 12;
+                const ampm = hours >= 12 ? 'PM' : 'AM';
+                const minuteStr = minutes < 10 ? `0${minutes}` : minutes;
+                const timeStr = `It's ${hour12} ${minuteStr} ${ampm}`;
+                speak(timeStr, 0.9, 1.0);
+
+                if (hours >= 21) { setExpression('sleepy'); setTimeout(() => setExpression('idle'), 2000); }
+                else if (hours >= 12 && hours < 14) { setExpression('hungry'); setTimeout(() => setExpression('idle'), 2000); }
+                else { setExpression('happy'); setTimeout(() => setExpression('idle'), 2000); }
+            }
+
+            function scheduleHourly() {
+                const now = new Date();
+                const msToNextHour = (60 - now.getMinutes()) * 60 * 1000 - now.getSeconds() * 1000 - now.getMilliseconds();
+                if (timeAnnounceTimer) clearTimeout(timeAnnounceTimer);
+                const timeout = Math.max(msToNextHour, 1000);
+                timeAnnounceTimer = setTimeout(() => {
+                    announceTime();
+                    setInterval(() => announceTime(), 3600000);
+                }, timeout);
+                if (now.getMinutes() === 0 && now.getSeconds() < 5) announceTime();
+            }
+
+            // ---------- 10 MINUTE REMINDER ----------
+            function askAssistance() {
+                speak("Have a question? Do you need any assistance?", 0.9, 1.05);
+                // show curious / talk expression
+                setExpression('talk');
+                setTimeout(() => { if (state === 'talk') setExpression('idle'); }, 2500);
+            }
+
+            function startTenMinuteReminder() {
+                if (reminderTimer) clearInterval(reminderTimer);
+                // first reminder after 10 minutes, then every 10 min
+                reminderTimer = setInterval(() => {
+                    askAssistance();
+                }, 600000); // 10 minutes
+            }
+
+            // ---------- STARTUP ----------
+            function init() {
+                if (blinkTimer) clearTimeout(blinkTimer);
+                if (lookTimer) clearTimeout(lookTimer);
+                if (randomTimer) clearTimeout(randomTimer);
+                if (timeAnnounceTimer) clearTimeout(timeAnnounceTimer);
+                if (quoteTimer) clearTimeout(quoteTimer);
+                if (reminderTimer) clearInterval(reminderTimer);
+
+                if (synth) window.speechSynthesis.getVoices();
+
+                blink();
+                lookAround();
+                randomTimer = setTimeout(randomBehavior, 3500);
+                scheduleHourly();
+
+                // initial greeting + first study quote after a short delay
+                setTimeout(() => {
+                    speak("EMO bot online. Let's study together!", 0.95, 1.05);
+                }, 1000);
+
+                setTimeout(speakStudyQuote, 6000);  // first quote after 6 seconds
+                startTenMinuteReminder();
+
+                setExpression('idle');
+
+                // voice reload fallback
+                if (synth && voices.length === 0) {
+                    setTimeout(() => { voices = synth.getVoices(); }, 800);
+                }
+            }
+
+            // wait for voices
+            if (synth) {
+                if (synth.getVoices().length > 0) {
+                    voices = synth.getVoices();
+                    init();
+                } else {
+                    synth.onvoiceschanged = () => { voices = synth.getVoices(); init(); };
+                    setTimeout(() => { if (voices.length === 0) voices = synth.getVoices(); init(); }, 1500);
+                }
+            } else {
+                init();
+            }
+
+            // context / scroll prevention
+            window.addEventListener('contextmenu', e => e.preventDefault());
+            document.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
+
+            function adjustScale() {
+                const faceGroup = document.querySelector('.face-group');
+                if (!faceGroup) return;
+                const vh = window.innerHeight;
+                faceGroup.style.transform = (vh < 400) ? 'scale(0.9)' : 'scale(1.1)';
+            }
+            window.addEventListener('resize', adjustScale);
+            adjustScale();
+        })();
+    </script>
+</body>
+</html>
