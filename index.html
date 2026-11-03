@@ -111,7 +111,6 @@
             z-index: 999; background: transparent; pointer-events: auto;
         }
         .touch-zone:active { background: rgba(0,255,65,0.02); }
-        .hud-overlay { display: none; }
     </style>
 </head>
 <body>
@@ -122,6 +121,7 @@
         </div>
         <div class="mouth" id="mouth"></div>
     </div>
+    <!-- Right-side touch zone for expressions -->
     <div class="touch-zone" id="touchZone"></div>
 
     <script>
@@ -135,43 +135,24 @@
             let blinkTimer = null;
             let lookTimer = null;
             let randomTimer = null;
-            let speechTimer = null;
             let timeAnnounceTimer = null;
             let reminderTimer = null;
             let quoteTimer = null;
 
-            // ---------- SPEECH ----------
-            const synth = window.speechSynthesis;
-            let voices = [];
-            let voiceReady = false;
-
-            function loadVoices() {
-                if (!synth) return;
-                voices = synth.getVoices();
-                if (voices.length > 0) voiceReady = true;
-            }
-            if (synth) {
-                if (speechSynthesis.onvoiceschanged !== undefined) {
-                    speechSynthesis.onvoiceschanged = loadVoices;
+            // ---------- APP INVENTOR SPEECH BRIDGE ----------
+            // This function sends text to the native Android TextToSpeech engine.
+            // In App Inventor, you will read this string and speak it.
+            function speak(text) {
+                if (window.AppInventor) {
+                    // Send the text to App Inventor's WebViewString
+                    window.AppInventor.setWebViewString(text);
+                } else {
+                    // Fallback for testing in a normal browser (will be silent in App Inventor)
+                    console.log("SPEAK:", text);
                 }
-                loadVoices();
             }
 
-            function speak(text, rate = 0.95, pitch = 1.0) {
-                if (!synth) { console.log("TTS not supported"); return; }
-                synth.cancel();
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.rate = rate;
-                utterance.pitch = pitch;
-                utterance.volume = 1;
-                if (voices.length > 0) {
-                    const engVoice = voices.find(v => v.lang.includes('en') || v.lang.includes('US') || v.lang.includes('GB'));
-                    if (engVoice) utterance.voice = engVoice;
-                }
-                synth.speak(utterance);
-            }
-
-            // ---------- helper reset ----------
+            // ---------- HELPER: RESET CLASSES ----------
             function resetClasses() {
                 leftEye.className = 'eye';
                 rightEye.className = 'eye';
@@ -212,7 +193,7 @@
                 }
             }
 
-            // ---------- blink ----------
+            // ---------- BLINK ----------
             function blink() {
                 if (state !== 'idle' && state !== 'sleepy') {
                     blinkTimer = setTimeout(blink, 3000);
@@ -233,7 +214,7 @@
                 blinkTimer = setTimeout(blink, nextBlink);
             }
 
-            // ---------- look around ----------
+            // ---------- LOOK AROUND ----------
             function lookAround() {
                 if (state === 'idle') {
                     const x = (Math.random() - 0.5) * 30;
@@ -246,7 +227,7 @@
                 lookTimer = setTimeout(lookAround, Math.random() * 3000 + 1500);
             }
 
-            // ---------- random behavior ----------
+            // ---------- RANDOM BEHAVIOR ----------
             function randomBehavior() {
                 const expressions = ['happy', 'sad', 'sleepy', 'dizzy', 'hungry', 'tired', 'suspicious', 'talk'];
                 const pick = expressions[Math.floor(Math.random() * expressions.length)];
@@ -258,7 +239,7 @@
                 randomTimer = setTimeout(randomBehavior, Math.random() * 6000 + 4000);
             }
 
-            // ---------- TOUCH: cycle expressions + speak ----------
+            // ---------- TOUCH: CYCLE EXPRESSIONS + SPEAK ----------
             let lastTouchTime = 0;
             const touchExpressions = ['happy', 'sad', 'sleepy', 'dizzy', 'hungry', 'tired', 'suspicious', 'talk'];
             const touchPhrases = {
@@ -279,7 +260,7 @@
 
                 const pick = touchExpressions[Math.floor(Math.random() * touchExpressions.length)];
                 setExpression(pick);
-                speak(touchPhrases[pick] || "Hello", 0.95, 1.1);
+                speak(touchPhrases[pick] || "Hello");
 
                 setTimeout(() => { if (state === pick) setExpression('idle'); }, 2200);
             }
@@ -287,26 +268,26 @@
             touchZone.addEventListener('click', handleTouch);
             touchZone.addEventListener('touchstart', (e) => { e.preventDefault(); handleTouch(e); }, { passive: false });
 
-            // ---------- STUDY QUOTES (famous) ----------
+            // ---------- STUDY QUOTES (FAMOUS) ----------
             const studyQuotes = [
-                { text: "Dream is not that which you see while sleeping, it is something that does not let you sleep. — APJ Abdul Kalam", rate: 0.9, pitch: 1.0 },
-                { text: "You have to dream before your dreams can come true. — APJ Abdul Kalam", rate: 0.9, pitch: 1.0 },
-                { text: "Excellence is a continuous process and not an accident. — APJ Abdul Kalam", rate: 0.9, pitch: 1.0 },
-                { text: "Education is the most powerful weapon which you can use to change the world. — Nelson Mandela", rate: 0.9, pitch: 1.0 },
-                { text: "The future belongs to those who believe in the beauty of their dreams. — Eleanor Roosevelt", rate: 0.9, pitch: 1.0 },
-                { text: "Success is not final, failure is not fatal: it is the courage to continue that counts. — Winston Churchill", rate: 0.9, pitch: 1.0 },
-                { text: "The only way to do great work is to love what you do. — Steve Jobs", rate: 0.9, pitch: 1.0 },
-                { text: "Believe you can and you're halfway there. — Theodore Roosevelt", rate: 0.9, pitch: 1.0 },
-                { text: "It does not matter how slowly you go as long as you do not stop. — Confucius", rate: 0.9, pitch: 1.0 },
-                { text: "The beautiful thing about learning is that no one can take it away from you. — B.B. King", rate: 0.9, pitch: 1.0 },
-                { text: "Study while others are sleeping; work while others are loafing; prepare while others are playing; and dream while others are wishing. — William Arthur Ward", rate: 0.9, pitch: 1.0 },
-                { text: "Don't watch the clock; do what it does. Keep going. — Sam Levenson", rate: 0.9, pitch: 1.0 }
+                "Dream is not that which you see while sleeping, it is something that does not let you sleep. — APJ Abdul Kalam",
+                "You have to dream before your dreams can come true. — APJ Abdul Kalam",
+                "Excellence is a continuous process and not an accident. — APJ Abdul Kalam",
+                "Education is the most powerful weapon which you can use to change the world. — Nelson Mandela",
+                "The future belongs to those who believe in the beauty of their dreams. — Eleanor Roosevelt",
+                "Success is not final, failure is not fatal: it is the courage to continue that counts. — Winston Churchill",
+                "The only way to do great work is to love what you do. — Steve Jobs",
+                "Believe you can and you're halfway there. — Theodore Roosevelt",
+                "It does not matter how slowly you go as long as you do not stop. — Confucius",
+                "The beautiful thing about learning is that no one can take it away from you. — B.B. King",
+                "Study while others are sleeping; work while others are loafing; prepare while others are playing; and dream while others are wishing. — William Arthur Ward",
+                "Don't watch the clock; do what it does. Keep going. — Sam Levenson"
             ];
 
             function speakStudyQuote() {
                 const idx = Math.floor(Math.random() * studyQuotes.length);
                 const q = studyQuotes[idx];
-                speak(q.text, q.rate, q.pitch);
+                speak(q);
                 // cute expression while speaking
                 setExpression('happy');
                 setTimeout(() => { if (state === 'happy') setExpression('idle'); }, 3000);
@@ -327,7 +308,7 @@
                 const ampm = hours >= 12 ? 'PM' : 'AM';
                 const minuteStr = minutes < 10 ? `0${minutes}` : minutes;
                 const timeStr = `It's ${hour12} ${minuteStr} ${ampm}`;
-                speak(timeStr, 0.9, 1.0);
+                speak(timeStr);
 
                 if (hours >= 21) { setExpression('sleepy'); setTimeout(() => setExpression('idle'), 2000); }
                 else if (hours >= 12 && hours < 14) { setExpression('hungry'); setTimeout(() => setExpression('idle'), 2000); }
@@ -348,7 +329,7 @@
 
             // ---------- 10 MINUTE REMINDER ----------
             function askAssistance() {
-                speak("Have a question? Do you need any assistance?", 0.9, 1.05);
+                speak("Have a question? Do you need any assistance?");
                 // show curious / talk expression
                 setExpression('talk');
                 setTimeout(() => { if (state === 'talk') setExpression('idle'); }, 2500);
@@ -371,41 +352,23 @@
                 if (quoteTimer) clearTimeout(quoteTimer);
                 if (reminderTimer) clearInterval(reminderTimer);
 
-                if (synth) window.speechSynthesis.getVoices();
-
                 blink();
                 lookAround();
                 randomTimer = setTimeout(randomBehavior, 3500);
                 scheduleHourly();
 
-                // initial greeting + first study quote after a short delay
+                // initial greeting + first study quote
                 setTimeout(() => {
-                    speak("EMO bot online. Let's study together!", 0.95, 1.05);
+                    speak("EMO bot online. Let's study together!");
                 }, 1000);
 
                 setTimeout(speakStudyQuote, 6000);  // first quote after 6 seconds
                 startTenMinuteReminder();
 
                 setExpression('idle');
-
-                // voice reload fallback
-                if (synth && voices.length === 0) {
-                    setTimeout(() => { voices = synth.getVoices(); }, 800);
-                }
             }
 
-            // wait for voices
-            if (synth) {
-                if (synth.getVoices().length > 0) {
-                    voices = synth.getVoices();
-                    init();
-                } else {
-                    synth.onvoiceschanged = () => { voices = synth.getVoices(); init(); };
-                    setTimeout(() => { if (voices.length === 0) voices = synth.getVoices(); init(); }, 1500);
-                }
-            } else {
-                init();
-            }
+            init();
 
             // context / scroll prevention
             window.addEventListener('contextmenu', e => e.preventDefault());
